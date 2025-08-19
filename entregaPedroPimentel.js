@@ -51,6 +51,44 @@ class Sistema{
         this.proximoIdQuarto = 1; // controla o número de ID dos quartos
         this.proximoIdReserva = 1; // controla o número de ID das reservas
     }
+    verificarcpf(cpf){
+        // verifica se o cpf tem onze digitos
+        if (cpf.length !== 11) return false;
+        let soma = 0;
+        // verificação do decimo digito
+        for (let i =0; i<9; i++){
+            soma += parseInt(cpf[i]) * (10 - i);
+        }
+        if (new Set(cpf).size === 1) return false; // verifica se todos os digitos do cpf sao iguais
+        let resto = (soma * 10) % 11;
+        if (resto === 10) resto = 0;
+        if (resto !== parseInt(cpf[9])) return false;
+        soma = 0;
+        //verifica o decimo primeiro digito
+        for (let i = 0; i < 10; i++) {
+            soma += parseInt(cpf[i]) * (11 - i);
+        }
+        resto = (soma * 10) % 11;
+        if (resto === 10) resto = 0;
+        if (resto !== parseInt(cpf[10])) return false;
+
+        return true;
+    }
+
+    verificarEmail(email) {
+        let temArroba = false;
+        let temPonto = false;
+
+        for (let i = 0; i < email.length; i++) {
+            if (email[i] === "@") {
+                temArroba = true;
+            } else if (temArroba && email[i] === ".") {
+                temPonto = true;
+            }
+        }
+
+        return temArroba && temPonto;
+    }
 
     // Método que permite cadastrar clientes. Acessado no menu inicial.
     fazerCadastro(){
@@ -60,10 +98,18 @@ class Sistema{
             console.log('Erro: Email ja cadastrado!');
             return;
         }
+        if (!this.verificarEmail(email)){
+            console.log('Email invalido');
+            return;
+        }
         const cpf = requisicao.question('CPF: ');
         // confere se ha algum funcionario ou cliente com esse cpf ja cadstrado
         if (this.clientes.some(c => c.cpf === cpf) || this.funcionarios.some(f => f.cpf === cpf)) {
             console.log('Erro: CPF ja cadastrado!');
+            return;
+        }
+        if (!this.verificarcpf(cpf)) {
+            console.log('CPF invalido');
             return;
         }
         const senha = requisicao.question('Senha: ', { hideEchoBack: true });
@@ -198,6 +244,14 @@ class Sistema{
         let dataEntrada = new Date(anoE, mesE - 1, diaE);
         let dia = new Date(anoE, mesE - 1, diaE); // Essa variavel 'dia' funciona como um contador tendo como inicio a data de entrada
         const dataSaida = new Date(anoS, mesS - 1, diaS);
+        if (dataSaida <= dataEntrada) {
+            console.log("A data de saída deve ser posterior à data de entrada.");
+            return;
+        }
+        if (isNaN(dataEntrada.getTime()) || isNaN(dataSaida.getTime())) {
+            console.log('Data invalida');
+            return;
+        }
         // o while incrementa um dia a variavel 'dia' e adiciona na variavel 'datasreserva' essa data, para que seja um array com todas as datas em que o cliente deseja permanecer hospedado no hotel
         let datasreserva = [];
         while (dia <= dataSaida) { 
@@ -441,7 +495,7 @@ hotel.funcionarios.push(new Funcionario(
     'F0',          // ID
     'admin',       // nome de usuário
     '12345678900', // CPF
-    'admin@hotel.com', // email
+    'admin@fluxo.com', // email
     'senha123',    // senha
     'Administrador' // nome completo
 ));
